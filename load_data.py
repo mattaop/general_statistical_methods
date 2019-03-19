@@ -1,12 +1,13 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
+
 def load_data():
     T = 30000
     mdf = 50
 
     # get data from csv files
-    data = pd.read_csv('train.csv', usecols=['description', 'deal_probability'])
+    data = pd.read_csv('data/train.csv', usecols=['description', 'deal_probability'])
     x = (data['description'])
     y = (data['deal_probability'])
 
