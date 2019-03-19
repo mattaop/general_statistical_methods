@@ -7,7 +7,7 @@ from keras.preprocessing import sequence
 def fit_rnn(x_train, y_train, x_test, y_test, max_features, max_length):
     x_train = sequence.pad_sequences(x_train, maxlen=max_length)
     x_test = sequence.pad_sequences(x_test, maxlen=max_length)
-    model_nn = Nn.NeuralNetwork('rnn1', x_train, y_train, max_features, max_length)
+    model_nn = Nn.NeuralNetwork('ffn', x_train, y_train, max_features, max_length)
     model_nn.train(x_train, y_train, x_test, y_test)
 
 
