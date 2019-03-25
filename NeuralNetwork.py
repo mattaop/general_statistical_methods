@@ -1,7 +1,6 @@
 from keras.models import Sequential,Input,Model
 from keras.layers import Input, Dense, Embedding, SimpleRNN, LSTM, Conv1D, Dropout, MaxPooling1D, Flatten, concatenate
 import matplotlib.pyplot as plt
-from keras.utils import plot_model
 import numpy as np
 
 
@@ -69,38 +68,66 @@ class NeuralNetwork:
         # define two sets of inputs
         x_title = Input(shape=(self.max_input_length,))
         x_desc = Input(shape=(self.max_input_length,))
+        x_region = Input(shape=(self.max_input_length,))
+        x_city = Input(shape=(self.max_input_length,))
+        x_cat1 = Input(shape=(self.max_input_length,))
+        x_cat2 = Input(shape=(self.max_input_length,))
+        x_price = Input(shape=(1,))
 
-        # the first network
-        x = Embedding(input_dim=self.max_features, output_dim=32, input_length=self.max_input_length)(x_title)
-        x = LSTM(128, dropout=0.2, recurrent_dropout=0.2, return_sequences=True)(x)
-        x = LSTM(128, dropout=0.2, recurrent_dropout=0.2)(x)
-        x = Dense(1, activation='sigmoid')(x)
+        # the first network operating on title
+        x1 = Embedding(input_dim=self.max_features, output_dim=32, input_length=self.max_input_length)(x_title)
+        x1 = LSTM(128, dropout=0.2, recurrent_dropout=0.2, return_sequences=True)(x1)
+        x1 = LSTM(128, dropout=0.2, recurrent_dropout=0.2)(x1)
+        x1 = Dense(1, activation='sigmoid')(x1)
 
-        # the second branch operates on the second input
-        y = Embedding(input_dim=self.max_features, output_dim=32, input_length=self.max_input_length)(x_desc)
-        y = LSTM(128, dropout=0.2, recurrent_dropout=0.2, return_sequences=True)(y)
-        y = LSTM(128, dropout=0.2, recurrent_dropout=0.2)(y)
+        # the second network operating on description
+        x2 = Embedding(input_dim=self.max_features, output_dim=32, input_length=self.max_input_length)(x_desc)
+        x2 = LSTM(128, dropout=0.2, recurrent_dropout=0.2, return_sequences=True)(x2)
+        x2 = LSTM(128, dropout=0.2, recurrent_dropout=0.2)(x2)
+        x2 = Dense(1, activation='sigmoid')(x2)
+
+        # the third layer containing categorical values (region, city, category and price)
+        y1 = Embedding(input_dim=self.max_features, output_dim=32, input_length=self.max_input_length)(x_region)
+        y1 = Flatten()(y1)
+        y1 = Dense(1, activation='relu')(y1)
+
+        y2 = Embedding(input_dim=self.max_features, output_dim=32, input_length=self.max_input_length)(x_city)
+        y2 = Flatten()(y2)
+        y2 = Dense(1, activation='relu')(y2)
+
+        y3 = Embedding(input_dim=self.max_features, output_dim=32, input_length=self.max_input_length)(x_cat1)
+        y3 = Flatten()(y3)
+        y3 = Dense(1, activation='relu')(y3)
+
+        y4 = Embedding(input_dim=self.max_features, output_dim=32, input_length=self.max_input_length)(x_cat2)
+        y4 = Flatten()(y4)
+        y4 = Dense(1, activation='relu')(y4)
+
+        y5 = Dense(1, activation='relu')(x_price)
+
+        y = concatenate([y1, y2, y3, y4, y5])
+        y = Dense(16, activation='relu')(y)
         y = Dense(1, activation='sigmoid')(y)
 
         # combine the output of the two branches
-        combined = concatenate([x, y])
+        combined = concatenate([x1, x2, y])
 
         # apply a FC layer and then a regression prediction on the
         # combined outputs
-        z = Dense(2, activation="relu")(combined)
+        z = Dense(3, activation="relu")(combined)
         z = Dense(1, activation="linear")(z)
 
         # our model will accept the inputs of the two branches and
         # then output a single value
-        model = Model(inputs=[x_title, x_desc], outputs=z)
+        model = Model(inputs=[x_title, x_desc, x_region, x_city, x_cat1, x_cat2, x_price], outputs=z)
 
         model.compile(loss='mse', optimizer='adam', metrics=['accuracy'])
-        #plot_model(model, to_file='model.png')
         model.summary()
         return model
 
-    def train(self, x_title, x_desc, y, batch_size=32, epochs=5, verbose=True):
-        history = self.network.fit([x_title, x_desc], y, epochs=epochs, verbose=verbose, batch_size=batch_size, validation_split=0.3)
+    def train(self, x_title, x_desc, x_region, x_city, x_cat1, x_cat2, x_price, y, batch_size=32, epochs=5, verbose=True):
+        history = self.network.fit([x_title, x_desc, x_region, x_city, x_cat1, x_cat2, x_price], y, epochs=epochs,
+                                   verbose=verbose, batch_size=batch_size, validation_split=0.3)
         #(loss, accuracy) = self.network.evaluate(x_train, y_train)
         #print("Training Accuracy: {:.4f}".format(accuracy))
         #(loss, accuracy) = self.network.evaluate(x_test, y_test)
@@ -111,17 +138,16 @@ class NeuralNetwork:
         # show the terrible predictions
         plt.plot(history.history['loss'])
         plt.plot(history.history['val_loss'])
-        plt.title('model loss')
-        plt.ylabel('loss')
-        plt.xlabel('epoch')
-        plt.legend(['train', 'validation'], loc='upper left')
+        plt.title('Model loss')
+        plt.ylabel('Loss')
+        plt.xlabel('Epoch')
+        plt.legend(['Train', 'Validation'], loc='upper left')
         plt.show()
 
-        plt.plot(history.history['accuracy'])
-        plt.plot(history.history['val_accuracy'])
-        plt.title('model accuracy')
-        plt.ylabel('accuracy')
-        plt.xlabel('epoch')
-        plt.legend(['train', 'validation'], loc='upper left')
+        plt.plot(history.history['acc'])
+        plt.plot(history.history['val_acc'])
+        plt.title('Model accuracy')
+        plt.ylabel('Accuracy')
+        plt.xlabel('Epoch')
+        plt.legend(['Train', 'Validation'], loc='upper left')
         plt.show()
-
