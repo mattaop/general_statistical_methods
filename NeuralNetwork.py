@@ -112,17 +112,16 @@ class NeuralNetwork:
         # combine the output of the two branches
         combined = concatenate([x1, x2, y])
 
-        # apply a FC layer and then a regression prediction on the
-        # combined outputs
+        # apply a FC layer and then a regression prediction on the combined outputs
         z = Dense(3, activation="relu")(combined)
         z = Dense(1, activation="linear")(z)
 
-        # our model will accept the inputs of the two branches and
-        # then output a single value
+        # define inputs and outputs
         model = Model(inputs=[x_title, x_desc, x_region, x_city, x_cat1, x_cat2, x_price], outputs=z)
 
         model.compile(loss='mse', optimizer='adam', metrics=['accuracy'])
         model.summary()
+
         return model
 
     def train(self, x_title, x_desc, x_region, x_city, x_cat1, x_cat2, x_price, y, batch_size=32, epochs=5, verbose=True):
