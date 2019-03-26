@@ -26,7 +26,7 @@ class DataProcessing:
         self.city = (self.data['city'])
         self.cat1 = (self.data['parent_category_name'])
         self.cat2 = (self.data['category_name'])
-        self.date = (self.data['activation_date'])
+        self.date = self.data['activation_date']
         self.param1 = (self.data['param_1'])
         self.param2 = (self.data['param_2'])
         self.param3 = (self.data['param_3'])
@@ -58,10 +58,6 @@ class DataProcessing:
         for c in cols:
             i += 1
             self.data[c] = [one_hot(d, self.max_features[i]) for d in self.data[c]]
-        label_binarizer = sklearn.preprocessing.LabelBinarizer()
-        label_binarizer.fit(range(max(self.data['activation_date'].values) + 1))
-        self.data['activation_date'] = label_binarizer.transform(self.data['activation_date'].values)
-        print(self.data['activation_date'])
 
     def pad_sequence(self):
         self.title = pad_sequences(self.title, maxlen=self.max_title, padding='post')
@@ -74,7 +70,6 @@ class DataProcessing:
         self.param2 = pad_sequences(self.param2, maxlen=5, padding='post')
         self.param3 = pad_sequences(self.param3, maxlen=5, padding='post')
         self.user_type = pad_sequences(self.user_type, maxlen=3, padding='post')
-        #self.date = pad_sequences(self.date, maxlen=7, padding='post')
 
         scale = StandardScaler(with_mean=0, with_std=1)
         scale.fit(self.price.values.reshape(-1, 1))

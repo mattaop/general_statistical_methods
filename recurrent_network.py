@@ -2,9 +2,9 @@ import DataProcessing as Dp
 import NeuralNetwork as Nn
 import pandas as pd
 
-samples = 300000
+samples = 30000
 max_title = 30
-max_desc = 200
+max_desc = 300
 max_features_text = 5000
 max_features_region = 28 + 1  # Number of regions
 max_features_city = 1022 + 1  # Number of cities
@@ -35,8 +35,6 @@ if __name__ == "__main__":
 
     print("Processing data...")
     data = Dp.DataProcessing(df, samples, max_title, max_desc, max_features)
-
-    print(data.date)
 
     print("Fitting model...")
     model = Nn.NeuralNetwork(max_title, max_desc, max_features)
