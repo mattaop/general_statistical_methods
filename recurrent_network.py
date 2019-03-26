@@ -1,19 +1,51 @@
-import load_data as Ld
+import DataProcessing as Dp
 import NeuralNetwork as Nn
-from keras.datasets import imdb
-import matplotlib.pyplot as plt
+import pandas as pd
+
+samples = 300000
+max_title = 30
+max_desc = 200
+max_features_text = 5000
+max_features_region = 28 + 1  # Number of regions
+max_features_city = 1022 + 1  # Number of cities
+max_features_parent_category_name = 9 + 1  # Parent categories
+max_features_category_name = 47 + 1  # Categories
+max_features_param1 = 500
+max_features_param2 = 500
+max_features_param3 = 500
+max_features_user = 3 + 1  # Private, shop or company
+max_features_date = 7 + 1  # Days in the week
 
 
-def main():
-    max_features = 5000
-    max_length = 500
+max_features = [max_features_text, max_features_text, max_features_region, max_features_city,
+                max_features_parent_category_name, max_features_category_name, max_features_param1, max_features_param2,
+                max_features_param3, max_features_user, max_features_date]
+
+
+def load_data():
+    df_data = pd.read_csv('data/train.csv', usecols=['description', 'title', 'region', 'city', 'parent_category_name',
+                                                     'category_name', 'price', 'activation_date', 'param_1', 'param_2',
+                                                     'param_3', 'user_type', 'item_seq_number', 'deal_probability'])
+    return df_data
+
+
+if __name__ == "__main__":
     print("Loading data...")
-    #(x_train, y_train), (x_test, y_test) = imdb.load_data(num_words=max_features)
-    #print(x_train[1])
-    x_title, x_desc, x_region, x_city, x_cat1, x_cat2, x_price, y = Ld.load_data(max_features, max_length)
+    df = load_data()
+
+    print("Processing data...")
+    data = Dp.DataProcessing(df, samples, max_title, max_desc, max_features)
+
+    print(data.date)
+
     print("Fitting model...")
-    model_nn = Nn.NeuralNetwork('combined_network', max_features, max_length)
-    model_nn.train(x_title, x_desc, x_region, x_city, x_cat1, x_cat2, x_price, y)
+    model = Nn.NeuralNetwork(max_title, max_desc, max_features)
+    model.train(data)
+
+    print("Processing data...")
+    data = Dp.DataProcessing(df, samples, max_title, max_desc, max_features, test=True)
+
+    print("Testing model...")
+    model.test(data)
 
 
-main()
