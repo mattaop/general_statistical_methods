@@ -44,15 +44,15 @@ class NeuralNetwork:
         embedding_layer = Embedding(input_dim=self.max_features_text, output_dim=32)
 
         x1 = embedding_layer(title)
-        x1 = LSTM(32, dropout=0.2, recurrent_dropout=0.2)(x1)
+        x1 = LSTM(32, dropout=0.2, recurrent_dropout=0.2, return_sequences=True)(x1)
         x1 = LSTM(32, dropout=0.2, recurrent_dropout=0.2)(x1)
         #x1 = Flatten()(x1)
         x1 = Dense(32, activation='relu')(x1)
         x1 = Dense(1, activation='sigmoid')(x1)
 
         x2 = embedding_layer(desc)
+        x2 = LSTM(32, dropout=0.2, recurrent_dropout=0.2, return_sequences=True)(x2)
         x2 = LSTM(32, dropout=0.2, recurrent_dropout=0.2)(x2)
-        x1 = LSTM(32, dropout=0.2, recurrent_dropout=0.2)(x1)
         #x2 = Flatten()(x2)
         x2 = Dense(32, activation='relu')(x2)
         x2 = Dense(1, activation='sigmoid')(x2)
