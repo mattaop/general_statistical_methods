@@ -49,6 +49,8 @@ class DataProcessing:
         if self.test:
             self.data = self.data.iloc[-int(len(self.data['deal_probability'].values)*0.25):, ]
         else:
+            if self.samples > int(len(self.data['deal_probability'].values)*0.75):
+                self.samples = int(len(self.data['deal_probability'].values)*0.75)
             self.data = self.data.iloc[:self.samples, ]
 
     def process_data(self):

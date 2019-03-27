@@ -100,7 +100,7 @@ class NeuralNetwork:
 
         # combine the outputs
         z = concatenate([x1, x2, y1, y2, y3, y4, y5, y6, y7, y8, y9, y10, y11])
-        z = BatchNormalization()(z)
+        #z = BatchNormalization()(z)
         z = Dense(13, activation="relu")(z)
         z = Dropout(0.2)(z)
         z = Dense(13, activation="relu")(z)
@@ -115,7 +115,7 @@ class NeuralNetwork:
 
         return model
 
-    def train(self, data, batch_size=32, epochs=15, verbose=True):
+    def train(self, data, batch_size=32, epochs=1, verbose=True):
         input = [data.title, data.desc, data.region, data.city, data.cat1, data.cat2, data.date,
                  data.param1, data.param2, data.param3, data.user_type, data.item_number, data.price]
         history = self.network.fit(input, data.y, epochs=epochs, verbose=verbose, batch_size=batch_size, validation_split=0.2)
@@ -123,11 +123,21 @@ class NeuralNetwork:
 
     def test(self, data):
         input = [data.title, data.desc, data.region, data.city, data.cat1, data.cat2, data.date,
-                 data.param1, data.param2, data.param3, data.user_type. data.item_number, data.price]
+                 data.param1, data.param2, data.param3, data.user_type, data.item_number, data.price]
         history = self.network.evaluate(input, data.y)
-        print(history)
+        print("Test loss: ", history[0], ", test accuracy: ", history[1])
+        print("Predicting values...")
         predictions = self.network.predict(input)
         self.plot_prediction(predictions, data.y)
+
+    def save_weight(self):
+        # serialize model to JSON
+        model_json = self.network.to_json()
+        with open("model.json", "w") as json_file:
+            json_file.write(model_json)
+        # serialize weights to HDF5
+        self.network.save_weights("model.h5")
+        print("Saved model to disk")
 
     def plot_results(self, history):
         # show the terrible predictions

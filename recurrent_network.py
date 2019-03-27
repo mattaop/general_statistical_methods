@@ -2,7 +2,7 @@ import DataProcessing as Dp
 import NeuralNetwork as Nn
 import pandas as pd
 
-samples = 30000
+samples = 3000
 max_title = 30
 max_desc = 300
 max_features_text = 5000
@@ -33,17 +33,20 @@ if __name__ == "__main__":
     print("Loading data...")
     df = load_data()
 
-    print("Processing data...")
+    print("Processing training data...")
     data = Dp.DataProcessing(df, samples, max_title, max_desc, max_features)
 
     print("Fitting model...")
     model = Nn.NeuralNetwork(max_title, max_desc, max_features)
     model.train(data)
 
-    print("Processing data...")
+    print("Processing test data...")
     data = Dp.DataProcessing(df, samples, max_title, max_desc, max_features, test=True)
 
     print("Testing model...")
     model.test(data)
+
+    print("Saving weights...")
+    model.save_weight()
 
 
