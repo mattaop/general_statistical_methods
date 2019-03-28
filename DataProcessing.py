@@ -18,7 +18,7 @@ class DataProcessing:
         self.test = test
         self.fill_nans()
         self.convert_date()
-        self.shrink_data()
+        self.split_data()
         self.process_data()
         self.title = (self.data['title'])
         self.desc = (self.data['description'])
@@ -45,13 +45,16 @@ class DataProcessing:
         self.data['price'].fillna(value=-1, inplace=True)
         self.data['activation_date'].fillna(value=-1, inplace=True)
 
-    def shrink_data(self):
+    def split_data(self):
         if self.test:
             self.data = self.data.iloc[-int(len(self.data['deal_probability'].values)*0.25):, ]
         else:
             if self.samples > int(len(self.data['deal_probability'].values)*0.75):
                 self.samples = int(len(self.data['deal_probability'].values)*0.75)
             self.data = self.data.iloc[:self.samples, ]
+
+    #def shrink_data(self):
+        #self.data =
 
     def process_data(self):
         i = -1

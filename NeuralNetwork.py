@@ -2,7 +2,9 @@ from keras.models import Sequential,Input,Model
 from keras.layers import Input, Dense, Embedding, SimpleRNN, LSTM, Conv1D, Dropout, MaxPooling1D, Flatten, concatenate, BatchNormalization
 import matplotlib.pyplot as plt
 import keras.backend as K
-import numpy as np
+from keras.callbacks import EarlyStopping
+import pandas as pd
+import DataProcessing as Dp
 
 
 class NeuralNetwork:
@@ -19,12 +21,18 @@ class NeuralNetwork:
         self.max_features_param3 = max_features[8]
         self.max_features_user_type = max_features[9]
         self.max_features_date = max_features[10]
-        self.network = self.neural_network()
+        self.network = self._neural_network()
 
-    def root_mean_squared_error(self, y_true, y_pred):
+    def _generate_data(self):
+        df_data = pd.read_csv('data/train.csv',
+                              usecols=['description', 'title', 'region', 'city', 'parent_category_name',
+                                       'category_name', 'price', 'activation_date', 'param_1', 'param_2',
+                                       'param_3', 'user_type', 'item_seq_number', 'deal_probability'])
+
+    def _root_mean_squared_error(self, y_true, y_pred):
         return K.sqrt(K.mean(K.square(y_pred - y_true)))
 
-    def neural_network(self):
+    def _neural_network(self):
         # define two sets of inputs
         title = Input(shape=(self.max_title,))
         desc = Input(shape=(self.max_desc,))
@@ -101,34 +109,40 @@ class NeuralNetwork:
         # combine the outputs
         z = concatenate([x1, x2, y1, y2, y3, y4, y5, y6, y7, y8, y9, y10, y11])
         #z = BatchNormalization()(z)
-        z = Dense(13, activation="relu")(z)
+        z = Dense(46, activation="relu")(z)
         z = Dropout(0.2)(z)
-        z = Dense(13, activation="relu")(z)
+        z = Dense(46, activation="relu")(z)
         z = Dense(1, activation="sigmoid")(z)
 
         # define inputs and outputs
         model = Model(inputs=[title, desc, region, city, cat1, cat2, date, param1, param2, param3, user_type,
                               item_number, price], outputs=z)
 
-        model.compile(loss=self.root_mean_squared_error, optimizer='Rmsprop', metrics=['accuracy'])
+        model.compile(loss=self._root_mean_squared_error, optimizer='Rmsprop', metrics=['accuracy'])
         model.summary()
 
         return model
 
-    def train(self, data, batch_size=32, epochs=1, verbose=True):
-        input = [data.title, data.desc, data.region, data.city, data.cat1, data.cat2, data.date,
-                 data.param1, data.param2, data.param3, data.user_type, data.item_number, data.price]
-        history = self.network.fit(input, data.y, epochs=epochs, verbose=verbose, batch_size=batch_size, validation_split=0.2)
-        self.plot_results(history)
+    def train(self, data_train, data_test, batch_size=64, epochs=50, verbose=True):
+        input_train = [data_train.title, data_train.desc, data_train.region, data_train.city, data_train.cat1,
+                       data_train.cat2, data_train.date, data_train.param1, data_train.param2, data_train.param3,
+                       data_train.user_type, data_train.item_number, data_train.price]
+        input_test = [data_test.title, data_test.desc, data_test.region, data_test.city, data_test.cat1, data_test.cat2,
+                      data_test.date, data_test.param1, data_test.param2, data_test.param3, data_test.user_type,
+                      data_test.item_number, data_test.price]
+        early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=0, verbose=0, mode='auto')
+        history = self.network.fit(input_train, data_train.y, epochs=epochs, verbose=verbose, batch_size=batch_size,
+                                   callbacks=[early_stopping], validation_data=[input_test, data_test.y])
+        self._plot_results(history)
 
     def test(self, data):
-        input = [data.title, data.desc, data.region, data.city, data.cat1, data.cat2, data.date,
-                 data.param1, data.param2, data.param3, data.user_type, data.item_number, data.price]
-        history = self.network.evaluate(input, data.y)
+        input_test = [data.title, data.desc, data.region, data.city, data.cat1, data.cat2, data.date,
+                      data.param1, data.param2, data.param3, data.user_type, data.item_number, data.price]
+        history = self.network.evaluate(input_test, data.y)
         print("Test loss: ", history[0], ", test accuracy: ", history[1])
         print("Predicting values...")
         predictions = self.network.predict(input)
-        self.plot_prediction(predictions, data.y)
+        self._plot_prediction(predictions, data.y)
 
     def save_weight(self):
         # serialize model to JSON
@@ -139,7 +153,7 @@ class NeuralNetwork:
         self.network.save_weights("model.h5")
         print("Saved model to disk")
 
-    def plot_results(self, history):
+    def _plot_results(self, history):
         # show the terrible predictions
         plt.plot(history.history['loss'])
         plt.plot(history.history['val_loss'])
@@ -149,6 +163,6 @@ class NeuralNetwork:
         plt.legend(['Train', 'Validation'], loc='upper left')
         plt.show()
 
-    def plot_prediction(self, predictions, label):
+    def _plot_prediction(self, predictions, label):
         plt.scatter(predictions, label)
         plt.show()

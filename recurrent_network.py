@@ -2,10 +2,10 @@ import DataProcessing as Dp
 import NeuralNetwork as Nn
 import pandas as pd
 
-samples = 3000
+samples = 1500000
 max_title = 30
 max_desc = 300
-max_features_text = 5000
+max_features_text = 20000
 max_features_region = 28 + 1  # Number of regions
 max_features_city = 1022 + 1  # Number of cities
 max_features_parent_category_name = 9 + 1  # Parent categories
@@ -34,17 +34,17 @@ if __name__ == "__main__":
     df = load_data()
 
     print("Processing training data...")
-    data = Dp.DataProcessing(df, samples, max_title, max_desc, max_features)
+    data_train = Dp.DataProcessing(df, samples, max_title, max_desc, max_features)
+
+    print("Processing test data...")
+    data_test = Dp.DataProcessing(df, samples, max_title, max_desc, max_features, test=True)
 
     print("Fitting model...")
     model = Nn.NeuralNetwork(max_title, max_desc, max_features)
-    model.train(data)
-
-    print("Processing test data...")
-    data = Dp.DataProcessing(df, samples, max_title, max_desc, max_features, test=True)
+    model.train(data_train, data_test)
 
     print("Testing model...")
-    model.test(data)
+    model.test(data_test)
 
     print("Saving weights...")
     model.save_weight()
