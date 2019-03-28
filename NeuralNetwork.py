@@ -3,6 +3,7 @@ from keras.layers import Input, Dense, Embedding, LSTM,  Dropout, Flatten, conca
 import matplotlib.pyplot as plt
 import keras.backend as K
 from keras.callbacks import EarlyStopping
+import pandas as pd
 
 
 class NeuralNetwork:
@@ -20,6 +21,12 @@ class NeuralNetwork:
         self.max_features_user_type = max_features[9]
         self.max_features_date = max_features[10]
         self.network = self._neural_network()
+
+    def _generate_data(self):
+        df_data = pd.read_csv('data/train.csv',
+                              usecols=['description', 'title', 'region', 'city', 'parent_category_name',
+                                       'category_name', 'price', 'activation_date', 'param_1', 'param_2',
+                                       'param_3', 'user_type', 'item_seq_number', 'deal_probability'])
 
     def _root_mean_squared_error(self, y_true, y_pred):
         return K.sqrt(K.mean(K.square(y_pred - y_true)))
@@ -133,8 +140,8 @@ class NeuralNetwork:
         self._plot_results(history)
 
     def test(self, data):
-        input_test = [data.title, data.desc, data.region, data.city, data.cat1, data.cat2, data.date, data.param1,
-                      data.param2, data.param3, data.user_type, data.item_number, data.price]
+        input_test = [data.title, data.desc, data.region, data.city, data.cat1, data.cat2, data.date,
+                      data.param1, data.param2, data.param3, data.user_type, data.item_number, data.price]
         history = self.network.evaluate(input_test, data.y)
         print("Test loss: ", history[0], ", test accuracy: ", history[1])
         print("Predicting values...")
@@ -163,4 +170,3 @@ class NeuralNetwork:
     def _plot_prediction(self, predictions, label):
         plt.scatter(predictions, label)
         plt.show()
-

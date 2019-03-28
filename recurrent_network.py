@@ -3,10 +3,10 @@ import NeuralNetwork as Nn
 import pandas as pd
 
 
-samples = 150
+samples = 1500000
 max_title = 30
-max_desc = 500
-max_features_text = 50000
+max_desc = 300
+max_features_text = 20000
 max_features_region = 28 + 1  # Number of regions
 max_features_city = 1022 + 1  # Number of cities
 max_features_parent_category_name = 9 + 1  # Parent categories
