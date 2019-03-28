@@ -1,6 +1,7 @@
 from sklearn.preprocessing import StandardScaler
 from keras.preprocessing.sequence import pad_sequences
 from keras.preprocessing.text import one_hot
+from keras.preprocessing.text import Tokenizer
 import sklearn.preprocessing
 
 
@@ -18,7 +19,7 @@ class DataProcessing:
         self.test = test
         self.fill_nans()
         self.convert_date()
-        self.shrink_data()
+        self.split_data()
         self.process_data()
         self.title = (self.data['title'])
         self.desc = (self.data['description'])
@@ -42,10 +43,10 @@ class DataProcessing:
         for c in cols:
             self.data[c].fillna(" ", inplace=True)
         self.data['item_seq_number'].fillna(value=-1, inplace=True)
-        self.data['price'].fillna(value=-1, inplace=True)
+        #self.data['price'].fillna(value=-1, inplace=True)
         self.data['activation_date'].fillna(value=-1, inplace=True)
 
-    def shrink_data(self):
+    def split_data(self):
         if self.test:
             self.data = self.data.iloc[-int(len(self.data['deal_probability'].values)*0.25):, ]
         else:
@@ -53,13 +54,19 @@ class DataProcessing:
                 self.samples = int(len(self.data['deal_probability'].values)*0.75)
             self.data = self.data.iloc[:self.samples, ]
 
+    #def shrink_data(self):
+        #self.data =
+
     def process_data(self):
         i = -1
         cols = ['title', 'description', 'region', 'city', 'parent_category_name', 'category_name', 'param_1', 'param_2',
                 'param_3', 'user_type']
         for c in cols:
             i += 1
-            self.data[c] = [one_hot(d, self.max_features[i]) for d in self.data[c]]
+            # self.data[c] = [one_hot(d, self.max_features[i]) for d in self.data[c]]
+            tokenizer = Tokenizer(num_words=self.max_features[i])
+            tokenizer.fit_on_texts(self.data[c])
+            self.data[c] = tokenizer.texts_to_sequences(self.data[c])
 
     def pad_sequence(self):
         self.title = pad_sequences(self.title, maxlen=self.max_title, padding='post')
@@ -78,9 +85,15 @@ class DataProcessing:
         self.price = scale.transform(self.price.values.reshape(-1, 1))
         scale.fit(self.item_number.values.reshape(-1, 1))
         self.price = scale.transform(self.item_number.values.reshape(-1, 1))
+        print(self.price)
+        self.price = np.nan_to_num(self.price)
 
     def feature_extraction(self):
-        pass
+        categories = self.data.cat2.unique()
+        mean_price_in_cat = pd.DataFrame(categories)
+        for c in categories:
+            mean_price_in_cat[c] = self.data.mean[self.data['cat2'] == c]
+        print(mean_price_in_cat)
 
     def convert_date(self):
         self.data['activation_date'] = np.expand_dims(
