@@ -45,10 +45,10 @@ class DataProcessing:
                 'param_3', 'user_type']
         for c in cols:
             self.data[c].fillna(" ", inplace=True)
-        #self.data['item_seq_number'].fillna(value=-1, inplace=True)
-        #self.data['price'].fillna(value=-1, inplace=True)
+        self.data['item_seq_number'].fillna(value=self.data['item_seq_number'].mean(), inplace=True)
+        self.data['price'].fillna(value=self.data['price'].mean(), inplace=True)
         self.data['activation_date'].fillna(value=-1, inplace=True)
-        #self.data['image_top_1'].fillna(value=0, inplace=True)
+        self.data['image_top_1'].fillna(value=0, inplace=True)
 
     def split_data(self):
         if self.test:
@@ -85,6 +85,7 @@ class DataProcessing:
         self.user_type = pad_sequences(self.user_type, maxlen=3, padding='post')
 
         scale = StandardScaler(with_mean=0, with_std=1)
+
 
         scale.fit(self.price.values.reshape(-1, 1))
         self.price = scale.transform(self.price.values.reshape(-1, 1))

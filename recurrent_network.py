@@ -3,7 +3,7 @@ import NeuralNetwork as Nn
 import pandas as pd
 import numpy as np
 
-samples = 150000
+samples = 1500000
 max_title = 30
 max_desc = 300
 max_features_text = 50000
