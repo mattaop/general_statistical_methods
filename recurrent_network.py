@@ -2,8 +2,7 @@ import DataProcessing as Dp
 import NeuralNetwork as Nn
 import pandas as pd
 
-
-samples = 1500000
+samples = 1500
 max_title = 30
 max_desc = 500
 max_features_text = 50000
@@ -14,26 +13,29 @@ max_features_category_name = 47 + 1  # Categories
 max_features_param1 = 500
 max_features_param2 = 500
 max_features_param3 = 500
+max_features_img = 2774 + 1
 max_features_user = 3 + 1  # Private, shop or company
 max_features_date = 7 + 1  # Days in the week
 
 
 max_features = [max_features_text, max_features_text, max_features_region, max_features_city,
                 max_features_parent_category_name, max_features_category_name, max_features_param1,
-                max_features_param2, max_features_param3, max_features_user, max_features_date]
+                max_features_param2, max_features_param3, max_features_img, max_features_user, max_features_date]
 
 
 def load_data():
     df_data = pd.read_csv('data/train.csv', usecols=['description', 'title', 'region', 'city', 'parent_category_name',
                                                      'category_name', 'price', 'activation_date', 'param_1', 'param_2',
-                                                     'param_3', 'user_type', 'item_seq_number', 'deal_probability'])
+                                                     'param_3', 'image_top_1', 'user_type', 'item_seq_number',
+                                                     'deal_probability'])
+    print(df_data['image_top_1'].head())
     return df_data
 
 
-"""
 def load_embedding_vectors(fname='cc.ru.300.vec.gz'):
-    en_model = FastText.load_fasttext_format('fname')
-"""
+    #en_model = FastText.load_fasttext_format('fname')
+    pass
+
 
 if __name__ == "__main__":
     print("Loading data...")

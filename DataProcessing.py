@@ -31,6 +31,7 @@ class DataProcessing:
         self.param1 = (self.data['param_1'])
         self.param2 = (self.data['param_2'])
         self.param3 = (self.data['param_3'])
+        self.img = (self.data['image_top_1'])
         self.user_type = (self.data['user_type'])
         self.item_number = (self.data['item_seq_number'])
         self.price = (self.data['price'])
@@ -39,7 +40,7 @@ class DataProcessing:
 
     def fill_nans(self):
         cols = ['title', 'description', 'region', 'city', 'parent_category_name', 'category_name', 'param_1', 'param_2',
-                'param_3', 'user_type']
+                'param_3', 'image_top_1', 'user_type']
         for c in cols:
             self.data[c].fillna(" ", inplace=True)
         self.data['item_seq_number'].fillna(value=-1, inplace=True)
@@ -69,6 +70,7 @@ class DataProcessing:
             self.data[c] = tokenizer.texts_to_sequences(self.data[c])
 
     def pad_sequence(self):
+        print(self.img.head())
         self.title = pad_sequences(self.title, maxlen=self.max_title, padding='post')
         self.desc = pad_sequences(self.desc, maxlen=self.max_desc, padding='post')
         self.region = pad_sequences(self.region, maxlen=5, padding='post')
