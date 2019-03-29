@@ -1,5 +1,6 @@
 from keras.models import Model
 from keras.layers import Input, Dense, Embedding, LSTM,  Dropout, Flatten, concatenate, BatchNormalization
+from keras import regularizers
 import matplotlib.pyplot as plt
 import keras.backend as K
 from keras.callbacks import EarlyStopping
@@ -52,13 +53,13 @@ class NeuralNetwork:
         #############
         # Text data #
         #############
-        embedding_layer = Embedding(input_dim=self.max_features_text, output_dim=32)
+        embedding_layer = Embedding(input_dim=self.max_features_text, output_dim=64)
 
         def encoder(input_data):
             x = embedding_layer(input_data)
-            x = LSTM(64, dropout=0.2, recurrent_dropout=0.2, return_sequences=True)(x)
-            x = LSTM(64, dropout=0.2, recurrent_dropout=0.2)(x)
-            x = Dense(64, activation='relu')(x)
+            x = LSTM(64, dropout=0.1, recurrent_dropout=0.1, return_sequences=True)(x)
+            x = LSTM(64, dropout=0.1, recurrent_dropout=0.1)(x)
+            x = Dense(64, activation='relu', kernel_regularizer=regularizers.l1_l2(0.01, 0.01))(x)
             x = Dense(1, activation='sigmoid')(x)
             return BatchNormalization()(x)
 
@@ -88,9 +89,9 @@ class NeuralNetwork:
         ####################
         def dense_layers(input_data, units):
             y = Flatten()(input_data)
-            y = Dense(units, activation='relu')(y)
-            y = Dropout(0.2)(y)
-            y = Dense(4, activation='relu')(y)
+            y = Dense(units, activation='relu', kernel_regularizer=regularizers.l1_l2(0.01, 0.01))(y)
+            y = Dropout(0.1)(y)
+            y = Dense(4, activation='relu', kernel_regularizer=regularizers.l1_l2(0.01, 0.01))(y)
             return BatchNormalization()(y)
 
         y1 = dense_layers(Embedding(input_dim=self.max_features_region, output_dim=16)(region), 16)  # Layers for region
@@ -113,10 +114,11 @@ class NeuralNetwork:
         # Combine networks #
         ####################
         z = concatenate([x1, x2, y1, y2, y3, y4, y5, y6, y7, y8, y9, y10, y11])
-        z = Dense(64, activation="relu")(z)
+        z = Dense(64, activation="relu", kernel_regularizer=regularizers.l1_l2(0.01, 0.01))(z)
         z = BatchNormalization()(z)
-        z = Dropout(0.2)(z)
-        z = Dense(64, activation="relu")(z)
+        z = Dropout(0.1)(z)
+        z = Dense(64, activation="relu", kernel_regularizer=regularizers.l1_l2(0.01, 0.01))(z)
+        z = Dropout(0.1)(z)
         z = Dense(1, activation="sigmoid")(z)
 
         ################
@@ -129,7 +131,7 @@ class NeuralNetwork:
 
         return model
 
-    def train(self, data_train, data_test, batch_size=64, epochs=50, verbose=True):
+    def train(self, data_train, data_test, batch_size=64, epochs=20, verbose=True):
         input_train = [data_train.title, data_train.desc, data_train.region, data_train.city, data_train.cat1,
                        data_train.cat2, data_train.date, data_train.param1, data_train.param2, data_train.param3,
                        data_train.user_type, data_train.item_number, data_train.price]
