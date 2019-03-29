@@ -1,4 +1,4 @@
-from sklearn.preprocessing import StandardScaler, Imputer
+from sklearn.preprocessing import StandardScaler
 from keras.preprocessing.sequence import pad_sequences
 from keras.preprocessing.text import one_hot
 from keras.preprocessing.text import Tokenizer
@@ -20,7 +20,7 @@ class DataProcessing:
         self.fill_nans()
         self.convert_date()
         self.split_data()
-        self.tokenize_data()
+        self.process_data()
         self.title = (self.data['title'])
         self.desc = (self.data['description'])
         self.region = (self.data['region'])
@@ -35,20 +35,19 @@ class DataProcessing:
         self.item_number = (self.data['item_seq_number'])
         self.price = (self.data['price'])
         self.img = (self.data['image_top_1'])
+        self.y = (self.data['deal_probability'])
         self.pad_sequence()
         self.x = [self.title, self.desc, self.region, self.city, self.cat1, self.cat2, self.date, self.param1,
-                  self.param2, self.param3, self.user_type, self.item_number, self.price, self.img]
-        self.y = (self.data['deal_probability'])
+                  self.param2, self.param3, self.img, self.user_type, self.item_number, self.price]
 
     def fill_nans(self):
         cols = ['title', 'description', 'region', 'city', 'parent_category_name', 'category_name', 'param_1', 'param_2',
                 'param_3', 'user_type']
         for c in cols:
             self.data[c].fillna(" ", inplace=True)
-        #self.data['item_seq_number'].fillna(value=-1, inplace=True)
+        self.data['item_seq_number'].fillna(value=-1, inplace=True)
         #self.data['price'].fillna(value=-1, inplace=True)
         self.data['activation_date'].fillna(value=-1, inplace=True)
-        #self.data['image_top_1'].fillna(value=0, inplace=True)
 
     def split_data(self):
         if self.test:
@@ -61,7 +60,7 @@ class DataProcessing:
     #def shrink_data(self):
         #self.data =
 
-    def tokenize_data(self):
+    def process_data(self):
         i = -1
         cols = ['title', 'description', 'region', 'city', 'parent_category_name', 'category_name', 'param_1', 'param_2',
                 'param_3', 'user_type']
@@ -84,18 +83,15 @@ class DataProcessing:
         self.param3 = pad_sequences(self.param3, maxlen=5, padding='post')
         self.user_type = pad_sequences(self.user_type, maxlen=3, padding='post')
 
+        """
         scale = StandardScaler(with_mean=0, with_std=1)
-
         scale.fit(self.price.values.reshape(-1, 1))
         self.price = scale.transform(self.price.values.reshape(-1, 1))
-        self.price = np.nan_to_num(self.price)
-
         scale.fit(self.item_number.values.reshape(-1, 1))
         self.item_number = scale.transform(self.item_number.values.reshape(-1, 1))
-        self.item_number = np.nan_to_num(self.item_number)
-
-        self.img = self.img.values.reshape(-1, 1)
-        self.img = np.nan_to_num(self.img)
+        print(self.price)
+        self.price = np.nan_to_num(self.price)
+        """
 
     def feature_extraction(self):
         categories = self.data.cat2.unique()
@@ -103,6 +99,8 @@ class DataProcessing:
         for c in categories:
             mean_price_in_cat[c] = self.data.mean[self.data['cat2'] == c]
         print(mean_price_in_cat)
+
+
 
     def convert_date(self):
         self.data['activation_date'] = np.expand_dims(

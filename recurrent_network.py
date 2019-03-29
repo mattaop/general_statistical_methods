@@ -1,8 +1,9 @@
 import DataProcessing as Dp
 import NeuralNetwork as Nn
 import pandas as pd
+import numpy as np
 
-samples = 1500
+samples = 150000
 max_title = 30
 max_desc = 300
 max_features_text = 50000
@@ -13,14 +14,14 @@ max_features_category_name = 47 + 1  # Categories
 max_features_param1 = 500
 max_features_param2 = 500
 max_features_param3 = 500
-max_features_img = 2774 + 1
+max_features_img = 3066 + 1
 max_features_user = 3 + 1  # Private, shop or company
 max_features_date = 7 + 1  # Days in the week
 
 
 max_features = [max_features_text, max_features_text, max_features_region, max_features_city,
                 max_features_parent_category_name, max_features_category_name, max_features_param1,
-                max_features_param2, max_features_param3, max_features_img, max_features_user, max_features_date]
+                max_features_param2, max_features_param3, max_features_user, max_features_date, max_features_img]
 
 
 def load_data():
@@ -28,7 +29,8 @@ def load_data():
                                                      'category_name', 'price', 'activation_date', 'param_1', 'param_2',
                                                      'param_3', 'image_top_1', 'user_type', 'item_seq_number',
                                                      'deal_probability'])
-    print(df_data['image_top_1'].head())
+    print(np.amax(df_data['image_top_1']))
+    print(np.amin(df_data['image_top_1']))
     return df_data
 
 
@@ -49,7 +51,7 @@ if __name__ == "__main__":
 
     #print("Load embedding vector...")
     #embedding_vector = load_embedding_vectors()
-
+    print(data_train)
     print("Fitting model...")
     model = Nn.NeuralNetwork(max_title, max_desc, max_features)
     model.train(data_train, data_test)
