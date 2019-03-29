@@ -4,7 +4,7 @@ import pandas as pd
 
 samples = 1500
 max_title = 30
-max_desc = 500
+max_desc = 300
 max_features_text = 50000
 max_features_region = 28 + 1  # Number of regions
 max_features_city = 1022 + 1  # Number of cities

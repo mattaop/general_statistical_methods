@@ -1,4 +1,4 @@
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, Imputer
 from keras.preprocessing.sequence import pad_sequences
 from keras.preprocessing.text import one_hot
 from keras.preprocessing.text import Tokenizer
@@ -82,13 +82,10 @@ class DataProcessing:
         self.param3 = pad_sequences(self.param3, maxlen=5, padding='post')
         self.user_type = pad_sequences(self.user_type, maxlen=3, padding='post')
 
-        scale = StandardScaler(with_mean=0, with_std=1)
-        scale.fit(self.price.values.reshape(-1, 1))
-        self.price = scale.transform(self.price.values.reshape(-1, 1))
+        imp = Imputer(strategy="mean", axis=0)
+        scale = StandardScaler()
+        self.price = scale.fit_transform(imp.fit_transform(self.price.values.reshape(-1, 1)))
         scale.fit(self.item_number.values.reshape(-1, 1))
-        self.price = scale.transform(self.item_number.values.reshape(-1, 1))
-        print(self.price)
-        self.price = np.nan_to_num(self.price)
 
     def feature_extraction(self):
         categories = self.data.cat2.unique()
