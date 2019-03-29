@@ -59,7 +59,6 @@ class NeuralNetwork:
             x = LSTM(64, dropout=0.2, recurrent_dropout=0.2, return_sequences=True)(x)
             x = LSTM(64, dropout=0.2, recurrent_dropout=0.2)(x)
             x = Dense(64, activation='relu')(x)
-            x = Dense(64, activation='relu')(x)
             x = Dense(1, activation='sigmoid')(x)
             return BatchNormalization()(x)
 
@@ -90,21 +89,24 @@ class NeuralNetwork:
         def dense_layers(input_data, units):
             y = Flatten()(input_data)
             y = Dense(units, activation='relu')(y)
+            y = Dropout(0.2)(y)
             y = Dense(4, activation='relu')(y)
             return BatchNormalization()(y)
 
-        y1 = dense_layers(Embedding(input_dim=self.max_features_region, output_dim=128)(region), 128)  # Layers for region
-        y2 = dense_layers(Embedding(input_dim=self.max_features_city, output_dim=128)(city), 128)  # Layers for city
+        y1 = dense_layers(Embedding(input_dim=self.max_features_region, output_dim=16)(region), 16)  # Layers for region
+        y2 = dense_layers(Embedding(input_dim=self.max_features_city, output_dim=16)(city), 16)  # Layers for city
         y3 = dense_layers(Embedding(input_dim=self.max_features_parent_category_name, output_dim=16)(cat1), 16)  # Layers for cat1
-        y4 = dense_layers(Embedding(input_dim=self.max_features_category_name, output_dim=48)(cat2), 48)  # Layers for cat2
-        y5 = dense_layers(Embedding(input_dim=self.max_features_param1, output_dim=128)(param1), 128)  # Layers for param1
-        y6 = dense_layers(Embedding(input_dim=self.max_features_param2, output_dim=128)(param2), 128)  # Layers for param2
-        y7 = dense_layers(Embedding(input_dim=self.max_features_param3, output_dim=128)(param3), 128)  # Layers for param3
-        y8 = dense_layers(Embedding(input_dim=self.max_features_user_type, output_dim=4)(user_type), 4)  # Layers for user_type
-        y9 = dense_layers(Embedding(input_dim=self.max_features_date, output_dim=8)(date), 8)  # Layers for date
-        y10 = Dense(4, activation='relu')(item_number)  # Layers for item type
+        y4 = dense_layers(Embedding(input_dim=self.max_features_category_name, output_dim=16)(cat2), 16)  # Layers for cat2
+        y5 = dense_layers(Embedding(input_dim=self.max_features_param1, output_dim=16)(param1), 16)  # Layers for param1
+        y6 = dense_layers(Embedding(input_dim=self.max_features_param2, output_dim=16)(param2), 16)  # Layers for param2
+        y7 = dense_layers(Embedding(input_dim=self.max_features_param3, output_dim=16)(param3), 16)  # Layers for param3
+        y8 = dense_layers(Embedding(input_dim=self.max_features_user_type, output_dim=16)(user_type), 16)  # Layers for user_type
+        y9 = dense_layers(Embedding(input_dim=self.max_features_date, output_dim=16)(date), 16)  # Layers for date
+        y10 = Dense(16, activation='relu')(item_number)
+        y10 = Dense(16, activation='relu')(y10)
         y10 = BatchNormalization()(y10)
-        y11 = Dense(4, activation='relu')(price)  # Layers for price
+        y11 = Dense(16, activation='relu')(price)
+        y11 = Dense(16, activation='relu')(y11)
         y11 = BatchNormalization()(y11)
 
         ####################
