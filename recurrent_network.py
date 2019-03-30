@@ -29,8 +29,6 @@ def load_data():
                                                      'category_name', 'price', 'activation_date', 'param_1', 'param_2',
                                                      'param_3', 'image_top_1', 'user_type', 'item_seq_number',
                                                      'deal_probability'])
-    print(np.amax(df_data['image_top_1']))
-    print(np.amin(df_data['image_top_1']))
     return df_data
 
 
