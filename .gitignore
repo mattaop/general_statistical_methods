@@ -4,3 +4,5 @@ __pycache__/
 venv/
 pretrained_embedding/
 *.gz
+*.h5
+*.hdf5
