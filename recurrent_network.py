@@ -33,7 +33,7 @@ def load_data():
 
 
 def load_embedding_vectors(fname='cc.ru.300.vec.gz'):
-    #en_model = FastText.load_fasttext_format('fname')
+    # en_model = FastText.load_fasttext_format('fname')
     pass
 
 
@@ -47,8 +47,9 @@ if __name__ == "__main__":
     print("Processing test data...")
     data_test = Dp.DataProcessing(df, samples, max_title, max_desc, max_features, test=True)
 
-    #print("Load embedding vector...")
-    #embedding_vector = load_embedding_vectors()
+    # print("Load embedding vector...")
+    # embedding_vector = load_embedding_vectors()
+
     print(data_train)
     print("Fitting model...")
     model = Nn.NeuralNetwork(max_title, max_desc, max_features)

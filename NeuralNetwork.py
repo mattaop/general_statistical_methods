@@ -1,5 +1,6 @@
 from keras.models import Model
-from keras.layers import Input, Dense, Embedding, LSTM,  Dropout, Flatten, concatenate, BatchNormalization
+from keras.layers import Input, Dense, Embedding, LSTM,  Dropout, Flatten, concatenate, BatchNormalization, \
+    GlobalMaxPooling1D
 from keras.initializers import RandomNormal
 import matplotlib.pyplot as plt
 import keras.backend as K
@@ -64,41 +65,49 @@ class NeuralNetwork:
             # x = Dense(1, activation='softmax')(x)
             return x
 
-        x1 = encoder(title)
-        x2 = encoder(desc)
+        # x1 = encoder(title)
+        # x2 = encoder(desc)
+        x1 = embedding_layer(title)
+        x1 = GlobalMaxPooling1D()(x1)
+        # x1 = Flatten()(x1)
+        x2 = embedding_layer(desc)
+        x2 = GlobalMaxPooling1D()(x2)
+        # x2 = Flatten()(x2)
 
         ####################
         # Categorical data #
         ####################
-        def dense_layers(input_data, units=16):
+        embedding_dim = 80
+
+        def dense_layers(input_data, units=embedding_dim):
             y = Flatten()(input_data)
-            # y = Dense(units, activation='relu')(y)
-            # y = Dropout(0.2)(y)
-            y = Dense(16, activation='relu')(y)
+            y = Dense(units, activation='relu')(y)
             y = Dropout(0.2)(y)
+            # y = Dense(16, activation='relu')(y)
+            # y = Dropout(0.2)(y)
             # y = Dense(1, activation='softmax')(y)
             return y
 
-        y1 = dense_layers(Embedding(input_dim=self.max_features_region, output_dim=3,
-                                    embeddings_initializer = self.gauss_init())(region))  # Layers for region
-        y2 = dense_layers(Embedding(input_dim=self.max_features_city, output_dim=5,
-                                    embeddings_initializer = self.gauss_init())(city))  # Layers for city
-        y3 = dense_layers(Embedding(input_dim=self.max_features_parent_category_name, output_dim=3,
-                                    embeddings_initializer = self.gauss_init())(cat1))  # Layers for cat1
-        y4 = dense_layers(Embedding(input_dim=self.max_features_category_name, output_dim=5,
-                                    embeddings_initializer = self.gauss_init())(cat2))  # Layers for cat2
-        y5 = dense_layers(Embedding(input_dim=self.max_features_param1, output_dim=5,
-                                    embeddings_initializer = self.gauss_init())(param1))  # Layers for param1
-        y6 = dense_layers(Embedding(input_dim=self.max_features_param2, output_dim=3,
-                                    embeddings_initializer = self.gauss_init())(param2))  # Layers for param2
-        y7 = dense_layers(Embedding(input_dim=self.max_features_param3, output_dim=3,
-                                    embeddings_initializer = self.gauss_init())(param3))  # Layers for param3
-        y8 = dense_layers(Embedding(input_dim=self.max_features_user_type, output_dim=2,
-                                    embeddings_initializer = self.gauss_init())(user_type))  # Layers for user_type
-        y9 = dense_layers(Embedding(input_dim=self.max_features_date, output_dim=3,
-                                    embeddings_initializer = self.gauss_init())(date))  # Layers for date
-        y10 = dense_layers(Embedding(input_dim=self.max_features_img, output_dim=5,
-                                     embeddings_initializer = self.gauss_init())(img))  # Layers for image type
+        y1 = dense_layers(Embedding(input_dim=self.max_features_region, output_dim=embedding_dim,
+                                    embeddings_initializer=self.gauss_init())(region))  # Layers for region
+        y2 = dense_layers(Embedding(input_dim=self.max_features_city, output_dim=embedding_dim,
+                                    embeddings_initializer=self.gauss_init())(city))  # Layers for city
+        y3 = dense_layers(Embedding(input_dim=self.max_features_parent_category_name, output_dim=embedding_dim,
+                                    embeddings_initializer=self.gauss_init())(cat1))  # Layers for cat1
+        y4 = dense_layers(Embedding(input_dim=self.max_features_category_name, output_dim=embedding_dim,
+                                    embeddings_initializer=self.gauss_init())(cat2))  # Layers for cat2
+        y5 = dense_layers(Embedding(input_dim=self.max_features_param1, output_dim=embedding_dim,
+                                    embeddings_initializer=self.gauss_init())(param1))  # Layers for param1
+        y6 = dense_layers(Embedding(input_dim=self.max_features_param2, output_dim=embedding_dim,
+                                    embeddings_initializer=self.gauss_init())(param2))  # Layers for param2
+        y7 = dense_layers(Embedding(input_dim=self.max_features_param3, output_dim=embedding_dim,
+                                    embeddings_initializer=self.gauss_init())(param3))  # Layers for param3
+        y8 = dense_layers(Embedding(input_dim=self.max_features_user_type, output_dim=embedding_dim,
+                                    embeddings_initializer=self.gauss_init())(user_type))  # Layers for user_type
+        y9 = dense_layers(Embedding(input_dim=self.max_features_date, output_dim=embedding_dim,
+                                    embeddings_initializer=self.gauss_init())(date))  # Layers for date
+        y10 = dense_layers(Embedding(input_dim=self.max_features_img, output_dim=embedding_dim,
+                                     embeddings_initializer=self.gauss_init())(img))  # Layers for image type
 
         y11 = Dense(16, activation='relu')(item_number)  # Layers for item type
         y11 = Dropout(0.2)(y11)
