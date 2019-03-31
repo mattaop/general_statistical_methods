@@ -1,5 +1,6 @@
 from keras.models import Model
-from keras.layers import Input, Dense, Embedding, LSTM,  Dropout, Flatten, concatenate, BatchNormalization
+from keras.layers import Input, Dense, Embedding, LSTM,  Dropout, Flatten, concatenate, BatchNormalization, \
+    GlobalMaxPooling1D
 from keras.regularizers import l1, l2, l1_l2
 import matplotlib.pyplot as plt
 import keras.backend as K
@@ -25,6 +26,9 @@ class NeuralNetwork:
 
     def _root_mean_squared_error(self, y_true, y_pred):
         return K.sqrt(K.mean(K.square(y_pred - y_true)))
+
+    def gauss_init():
+        return RandomNormal(mean=0.0, stddev=0.005)
 
     def _neural_network(self):
         #################
@@ -54,10 +58,11 @@ class NeuralNetwork:
             x = embedding_layer(input_data)
             x = LSTM(64, dropout=0.2, recurrent_dropout=0.2, return_sequences=True)(x)
             x = LSTM(64, dropout=0.2, recurrent_dropout=0.2)(x)
-            x = Dense(64, activation='relu')(x)
+            x = Dense(16, activation='relu')(x)
             x = Dropout(0.2)(x)
-            #x = Dense(1, activation='sigmoid')(x)
-            return BatchNormalization()(x)
+            # x = GlobalMaxPooling1D()(x)
+            # x = Dense(1, activation='softmax')(x)
+            return x
 
         """
         x1 = embedding_layer(title)
@@ -85,23 +90,23 @@ class NeuralNetwork:
         ####################
         def dense_layers(input_data, units=16):
             y = Flatten()(input_data)
-            y = Dense(units, activation='relu')(y)
-            y = Dropout(0.2)(y)
+            # y = Dense(units, activation='relu')(y)
+            # y = Dropout(0.2)(y)
             y = Dense(16, activation='relu')(y)
             y = Dropout(0.2)(y)
-            #y = Dense(1, activation='sigmoid')(y)
-            return BatchNormalization()(y)
+            # y = Dense(1, activation='softmax')(y)
+            return y
 
-        y1 = dense_layers(Embedding(input_dim=self.max_features_region, output_dim=16)(region))  # Layers for region
-        y2 = dense_layers(Embedding(input_dim=self.max_features_city, output_dim=16)(city))  # Layers for city
-        y3 = dense_layers(Embedding(input_dim=self.max_features_parent_category_name, output_dim=16)(cat1))  # Layers for cat1
-        y4 = dense_layers(Embedding(input_dim=self.max_features_category_name, output_dim=16)(cat2))  # Layers for cat2
-        y5 = dense_layers(Embedding(input_dim=self.max_features_param1, output_dim=16)(param1))  # Layers for param1
-        y6 = dense_layers(Embedding(input_dim=self.max_features_param2, output_dim=16)(param2))  # Layers for param2
-        y7 = dense_layers(Embedding(input_dim=self.max_features_param3, output_dim=16)(param3))  # Layers for param3
-        y8 = dense_layers(Embedding(input_dim=self.max_features_user_type, output_dim=16)(user_type))  # Layers for user_type
-        y9 = dense_layers(Embedding(input_dim=self.max_features_date, output_dim=16)(date))  # Layers for date
-        y10 = dense_layers(Embedding(input_dim=self.max_features_img, output_dim=16)(img))  # Layers for image type
+        y1 = dense_layers(Embedding(input_dim=self.max_features_region, output_dim=3)(region))  # Layers for region
+        y2 = dense_layers(Embedding(input_dim=self.max_features_city, output_dim=5)(city))  # Layers for city
+        y3 = dense_layers(Embedding(input_dim=self.max_features_parent_category_name, output_dim=3)(cat1))  # Layers for cat1
+        y4 = dense_layers(Embedding(input_dim=self.max_features_category_name, output_dim=5)(cat2))  # Layers for cat2
+        y5 = dense_layers(Embedding(input_dim=self.max_features_param1, output_dim=5)(param1))  # Layers for param1
+        y6 = dense_layers(Embedding(input_dim=self.max_features_param2, output_dim=3)(param2))  # Layers for param2
+        y7 = dense_layers(Embedding(input_dim=self.max_features_param3, output_dim=3)(param3))  # Layers for param3
+        y8 = dense_layers(Embedding(input_dim=self.max_features_user_type, output_dim=2)(user_type))  # Layers for user_type
+        y9 = dense_layers(Embedding(input_dim=self.max_features_date, output_dim=3)(date))  # Layers for date
+        y10 = dense_layers(Embedding(input_dim=self.max_features_img, output_dim=5)(img))  # Layers for image type
 
         y11 = dense_layers(item_number)  # Layers for item type
         y12 = dense_layers(price)  # Layers for price
@@ -110,8 +115,8 @@ class NeuralNetwork:
         # Combine networks #
         ####################
         z = concatenate([x1, x2, y1, y2, y3, y4, y5, y6, y7, y8, y9, y10, y11, y12])
-        z = Dense(512, activation="relu")(z)
         z = BatchNormalization()(z)
+        z = Dense(512, activation="relu")(z)
         z = Dropout(0.2)(z)
         z = Dense(64, activation="relu")(z)
         z = Dropout(0.2)(z)
@@ -128,7 +133,7 @@ class NeuralNetwork:
         return model
 
     def train(self, data_train, data_test, batch_size=64, epochs=50, verbose=True):
-        early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=3, verbose=0, mode='auto')
+        early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=1, verbose=0, mode='auto')
         save_weights = ModelCheckpoint('weights.best.h5')
         callbacks = [early_stopping, save_weights]
         history = self.network.fit(data_train.x, data_train.y, epochs=epochs, verbose=verbose, batch_size=batch_size,
