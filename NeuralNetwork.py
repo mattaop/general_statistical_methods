@@ -108,8 +108,10 @@ class NeuralNetwork:
         y9 = dense_layers(Embedding(input_dim=self.max_features_date, output_dim=3)(date))  # Layers for date
         y10 = dense_layers(Embedding(input_dim=self.max_features_img, output_dim=5)(img))  # Layers for image type
 
-        y11 = dense_layers(item_number)  # Layers for item type
-        y12 = dense_layers(price)  # Layers for price
+        y11 = Dense(16, activation='relu')(item_number)  # Layers for item type
+        y11 = Dropout(0.2)(y11)
+        y12 = Dense(16, activation='relu')(price)  # Layers for price
+        y12 = Dropout(0.2)(y12)
 
         ####################
         # Combine networks #
