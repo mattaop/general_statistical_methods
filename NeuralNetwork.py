@@ -1,10 +1,11 @@
 from keras.models import Model
 from keras.layers import Input, Dense, Embedding, LSTM,  Dropout, Flatten, concatenate, BatchNormalization, \
-    GlobalMaxPooling1D
+    GlobalMaxPooling1D, Conv1D, MaxPooling1D
 from keras.initializers import RandomNormal
 import matplotlib.pyplot as plt
 import keras.backend as K
-from keras.callbacks import EarlyStopping, ModelCheckpoint
+from keras.callbacks import EarlyStopping, ModelCheckpoint, LearningRateScheduler
+from keras.optimizers import adam
 
 
 class NeuralNetwork:
@@ -30,6 +31,9 @@ class NeuralNetwork:
     def gauss_init(self):
         return RandomNormal(mean=0.0, stddev=0.005)
 
+    def schedule(self, epoch):
+        return 0.01*10**(-epoch)
+
     def _neural_network(self):
         #################
         # Define inputs #
@@ -53,26 +57,34 @@ class NeuralNetwork:
         # Text data #
         #############
         embedding_layer = Embedding(input_dim=self.max_features_text, output_dim=64,
-                                    embeddings_initializer = self.gauss_init())
+                                    embeddings_initializer=self.gauss_init())
 
-        def encoder(input_data):
+        def encoderLSTM(input_data):
             x = embedding_layer(input_data)
             x = LSTM(64, dropout=0.2, recurrent_dropout=0.2, return_sequences=True)(x)
             x = LSTM(64, dropout=0.2, recurrent_dropout=0.2)(x)
-            x = Dense(16, activation='relu')(x)
-            x = Dropout(0.2)(x)
-            # x = GlobalMaxPooling1D()(x)
+            # x = Dense(16, activation='relu')(x)
+            # x = Dropout(0.2)(x)
+            x = GlobalMaxPooling1D()(x)
             # x = Dense(1, activation='softmax')(x)
             return x
 
-        # x1 = encoder(title)
-        # x2 = encoder(desc)
+        def encoderCNN(input_data):
+            x = embedding_layer(input_data)
+            x = Conv1D(64, 7, activation='relu', padding='same')(x)
+            x = MaxPooling1D(2)(x)
+            x = Conv1D(64, 7, activation='relu', padding='same')(x)
+            x = GlobalMaxPooling1D()(x)
+            return x
+
+        # x1 = encoderLSTM(title)
+        # x2 = encoderLSTM(desc)
+        # x1 = encoderCNN(title)
+        # x2 = encoderCNN(desc)
         x1 = embedding_layer(title)
         x1 = GlobalMaxPooling1D()(x1)
-        # x1 = Flatten()(x1)
         x2 = embedding_layer(desc)
         x2 = GlobalMaxPooling1D()(x2)
-        # x2 = Flatten()(x2)
 
         ####################
         # Categorical data #
@@ -82,7 +94,7 @@ class NeuralNetwork:
         def dense_layers(input_data, units=embedding_dim):
             y = Flatten()(input_data)
             y = Dense(units, activation='relu')(y)
-            y = Dropout(0.2)(y)
+            y = Dropout(0.4)(y)
             # y = Dense(16, activation='relu')(y)
             # y = Dropout(0.2)(y)
             # y = Dense(1, activation='softmax')(y)
@@ -110,9 +122,9 @@ class NeuralNetwork:
                                      embeddings_initializer=self.gauss_init())(img))  # Layers for image type
 
         y11 = Dense(16, activation='relu')(item_number)  # Layers for item type
-        y11 = Dropout(0.2)(y11)
+        y11 = Dropout(0.4)(y11)
         y12 = Dense(16, activation='relu')(price)  # Layers for price
-        y12 = Dropout(0.2)(y12)
+        y12 = Dropout(0.4)(y12)
 
         ####################
         # Combine networks #
@@ -120,27 +132,31 @@ class NeuralNetwork:
         z = concatenate([x1, x2, y1, y2, y3, y4, y5, y6, y7, y8, y9, y10, y11, y12])
         z = BatchNormalization()(z)
         z = Dense(512, activation="relu")(z)
-        z = Dropout(0.2)(z)
+        z = Dropout(0.4)(z)
         z = Dense(64, activation="relu")(z)
-        z = Dropout(0.2)(z)
+        z = Dropout(0.4)(z)
         z = Dense(1, activation="sigmoid")(z)
+
+        # Optimizer
+        opt = adam(lr=0.001, decay=1e-6)
 
         ################
         # Define model #
         ################
         model = Model(inputs=[title, desc, region, city, cat1, cat2, date, param1, param2, param3, user_type,
                               item_number, price, img], outputs=z)
-        model.compile(loss=self._root_mean_squared_error, optimizer='Rmsprop', metrics=['accuracy'])
+        model.compile(loss=self._root_mean_squared_error, optimizer=opt, metrics=['accuracy'])
         model.summary()
 
         return model
 
-    def train(self, data_train, data_test, batch_size=64, epochs=50, verbose=True):
-        early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=1, verbose=0, mode='auto')
+    def train(self, data_train, batch_size=64, epochs=50, verbose=True):
+        early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=2, verbose=0, mode='auto')
         save_weights = ModelCheckpoint('weights.best.h5')
+        set_learning_rate = LearningRateScheduler(schedule=self.schedule)
         callbacks = [early_stopping, save_weights]
         history = self.network.fit(data_train.x, data_train.y, epochs=epochs, verbose=verbose, batch_size=batch_size,
-                                   callbacks=callbacks, validation_data=[data_test.x, data_test.y])
+                                   callbacks=callbacks, validation_split=0.2)
         self._plot_results(history)
 
     def test(self, data):
@@ -170,6 +186,9 @@ class NeuralNetwork:
         plt.show()
 
     def _plot_prediction(self, predictions, label):
-        plt.scatter(predictions, label)
+        plt.scatter(predictions, label, s=1)
+        plt.title('Predicted vs true values')
+        plt.ylabel('Deal probability')
+        plt.xlabel('Predicted deal probability')
         plt.show()
 
