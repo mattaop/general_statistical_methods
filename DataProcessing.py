@@ -1,4 +1,4 @@
-from sklearn.preprocessing import StandardScaler, Imputer
+from sklearn.preprocessing import StandardScaler
 from keras.preprocessing.sequence import pad_sequences
 from keras.preprocessing.text import one_hot
 from keras.preprocessing.text import Tokenizer
@@ -36,6 +36,7 @@ class DataProcessing:
         self.price = (self.data['price'])
         self.img = (self.data['image_top_1'])
         self.pad_sequence()
+        self.normalize_numerical()
         self.x = [self.title, self.desc, self.region, self.city, self.cat1, self.cat2, self.date, self.param1,
                   self.param2, self.param3, self.user_type, self.item_number, self.price, self.img]
         self.y = (self.data['deal_probability'])
@@ -67,10 +68,10 @@ class DataProcessing:
                 'param_3', 'user_type']
         for c in cols:
             i += 1
-            # self.data[c] = [one_hot(d, self.max_features[i]) for d in self.data[c]]
-            tokenizer = Tokenizer(num_words=self.max_features[i])
-            tokenizer.fit_on_texts(self.data[c])
-            self.data[c] = tokenizer.texts_to_sequences(self.data[c])
+            self.data[c] = [one_hot(d, self.max_features[i]) for d in self.data[c]]
+            #tokenizer = Tokenizer(num_words=self.max_features[i])
+            #tokenizer.fit_on_texts(self.data[c])
+            #self.data[c] = tokenizer.texts_to_sequences(self.data[c])
 
     def pad_sequence(self):
         self.title = pad_sequences(self.title, maxlen=self.max_title, padding='post')
@@ -84,8 +85,8 @@ class DataProcessing:
         self.param3 = pad_sequences(self.param3, maxlen=5, padding='post')
         self.user_type = pad_sequences(self.user_type, maxlen=3, padding='post')
 
+    def normalize_numerical(self):
         scale = StandardScaler(with_mean=0, with_std=1)
-
 
         scale.fit(self.price.values.reshape(-1, 1))
         self.price = scale.transform(self.price.values.reshape(-1, 1))
