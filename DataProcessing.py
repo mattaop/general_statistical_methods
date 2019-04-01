@@ -70,22 +70,22 @@ class DataProcessing:
                 'param_3', 'user_type', 'user_id']
         for c in cols:
             i += 1
-            self.data[c] = [one_hot(d, self.max_features[i]) for d in self.data[c]]
-            #tokenizer = Tokenizer(num_words=self.max_features[i])
-            #tokenizer.fit_on_texts(self.data[c])
-            #self.data[c] = tokenizer.texts_to_sequences(self.data[c])
+            # self.data[c] = [one_hot(d, self.max_features[i]) for d in self.data[c]]
+            tokenizer = Tokenizer(num_words=self.max_features[i])
+            tokenizer.fit_on_texts(self.data[c])
+            self.data[c] = tokenizer.texts_to_sequences(self.data[c])
 
     def pad_sequence(self):
         self.title = pad_sequences(self.title, maxlen=self.max_title, padding='post')
         self.desc = pad_sequences(self.desc, maxlen=self.max_desc, padding='post')
-        self.region = pad_sequences(self.region, maxlen=5, padding='post')
-        self.city = pad_sequences(self.city, maxlen=5, padding='post')
-        self.cat1 = pad_sequences(self.cat1, maxlen=10, padding='post')
-        self.cat2 = pad_sequences(self.cat2, maxlen=10, padding='post')
+        self.region = pad_sequences(self.region, maxlen=3, padding='post')
+        self.city = pad_sequences(self.city, maxlen=3, padding='post')
+        self.cat1 = pad_sequences(self.cat1, maxlen=3, padding='post')
+        self.cat2 = pad_sequences(self.cat2, maxlen=3, padding='post')
         self.param1 = pad_sequences(self.param1, maxlen=5, padding='post')
         self.param2 = pad_sequences(self.param2, maxlen=5, padding='post')
-        self.param3 = pad_sequences(self.param3, maxlen=5, padding='post')
-        self.user_type = pad_sequences(self.user_type, maxlen=3, padding='post')
+        self.param3 = pad_sequences(self.param3, maxlen=3, padding='post')
+        self.user_type = pad_sequences(self.user_type, maxlen=1, padding='post')
         self.user_id = pad_sequences(self.user_id, maxlen=1, padding='post')
 
     def normalize_numerical(self):
