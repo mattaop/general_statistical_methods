@@ -35,10 +35,11 @@ class DataProcessing:
         self.item_number = (self.data['item_seq_number'])
         self.price = (self.data['price'])
         self.img = (self.data['image_top_1'])
+        self.user_id = (self.data['user_id'])
         self.pad_sequence()
         self.normalize_numerical()
         self.x = [self.title, self.desc, self.region, self.city, self.cat1, self.cat2, self.date, self.param1,
-                  self.param2, self.param3, self.user_type, self.item_number, self.price, self.img]
+                  self.param2, self.param3, self.user_type, self.item_number, self.price, self.img, self.user_id]
         self.y = (self.data['deal_probability'])
 
     def fill_nans(self):
@@ -50,6 +51,7 @@ class DataProcessing:
         self.data['price'].fillna(value=self.data['price'].mean(), inplace=True)
         self.data['activation_date'].fillna(value=-1, inplace=True)
         self.data['image_top_1'].fillna(value=0, inplace=True)
+        self.data['user_id'].fillna("0",  inplace=True)
 
     def split_data(self):
         if self.test:
@@ -65,7 +67,7 @@ class DataProcessing:
     def tokenize_data(self):
         i = -1
         cols = ['title', 'description', 'region', 'city', 'parent_category_name', 'category_name', 'param_1', 'param_2',
-                'param_3', 'user_type']
+                'param_3', 'user_type', 'user_id']
         for c in cols:
             i += 1
             self.data[c] = [one_hot(d, self.max_features[i]) for d in self.data[c]]
@@ -84,6 +86,7 @@ class DataProcessing:
         self.param2 = pad_sequences(self.param2, maxlen=5, padding='post')
         self.param3 = pad_sequences(self.param3, maxlen=5, padding='post')
         self.user_type = pad_sequences(self.user_type, maxlen=3, padding='post')
+        self.user_id = pad_sequences(self.user_id, maxlen=1, padding='post')
 
     def normalize_numerical(self):
         scale = StandardScaler(with_mean=0, with_std=1)
